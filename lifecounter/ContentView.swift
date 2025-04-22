@@ -32,8 +32,8 @@ struct ContentView: View {
                         
                         HStack(alignment: .center, spacing: 5) {
                             Button("-5") { self.player1Lives -= 5 }
-                            Button("+") { self.player1Lives += 1 }
                             Button("-") { self.player1Lives -= 1 }
+                            Button("+") { self.player1Lives += 1 }
                             Button("+5") { self.player1Lives += 5 }
                         }
                         .buttonStyle(.borderedProminent)
@@ -54,8 +54,8 @@ struct ContentView: View {
                         
                         HStack(alignment: .center, spacing: 5) {
                             Button("-5") { self.player2Lives -= 5 }
-                            Button("+") { self.player2Lives += 1 }
                             Button("-") { self.player2Lives -= 1 }
+                            Button("+") { self.player2Lives += 1 }
                             Button("+5") { self.player2Lives += 5 }
                         }
                         .buttonStyle(.borderedProminent)
