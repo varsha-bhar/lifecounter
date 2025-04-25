@@ -13,6 +13,14 @@ struct ContentView: View {
     @State private var isAdding = [true, true, true, true]
     @State private var inputAmounts = ["", "", "", ""]
     @State private var history: [String] = []
+
+    private func resetGame() {
+        playerLives = Array(repeating: 20, count: 4)
+        showInput = Array(repeating: false, count: 4)
+        isAdding = Array(repeating: true, count: 4)
+        inputAmounts = Array(repeating: "", count: 4)
+        history = []
+    }
     
     private var gameStarted: Bool {
         playerLives.contains(where: { $0 != 20 })
@@ -32,7 +40,7 @@ struct ContentView: View {
                             
                             VStack {
                                 HStack(spacing: 10) {
-                                    Button("Remove") {
+                                    Button("Lose") {
                                         isAdding[index] = false
                                         showInput[index] = true
                                     }
@@ -92,19 +100,23 @@ struct ContentView: View {
                             showInput.append(false)
                             isAdding.append(true)
                             inputAmounts.append("")
-                    }
+                            history.append("Player \(playerLives.count) joined the game.")
+                        }
                     }
                     .disabled(playerLives.count >= 8 || gameStarted)
                                 
                     Button("Remove Player") {
                         if playerLives.count > 2 {
-                                playerLives.removeLast()
-                                showInput.removeLast()
-                                isAdding.removeLast()
-                                inputAmounts.removeLast()
-                            }
+                            playerLives.removeLast()
+                            showInput.removeLast()
+                            isAdding.removeLast()
+                            inputAmounts.removeLast()
+                            history.append("Player \(playerLives.count) left the game.")
+                        }
                     }
                     .disabled(playerLives.count <= 2 || gameStarted)
+                    
+                    Button("Reset") { resetGame() }
                 }
                 .padding()
                 
