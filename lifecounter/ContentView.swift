@@ -8,82 +8,120 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var player1Lives = 20
-    @State private var player2Lives = 20
+    @State private var playerLives = Array(repeating: 20, count: 4)
+    @State private var showInput = [false, false, false, false]
+    @State private var isAdding = [true, true, true, true]
+    @State private var inputAmounts = ["", "", "", ""]
+    @State private var history: [String] = []
     
+    private var gameStarted: Bool {
+        playerLives.contains(where: { $0 != 20 })
+    }
+        
     var body: some View {
-        GeometryReader { geometry in
+        NavigationView {
             VStack {
-                Spacer()
-                
-                HStack {
-                    
-                    Spacer()
-
-                    VStack {
-                        Text("Player 1").font(.system(size:30)).padding(.bottom, 5)
-                        
-                        if player1Lives > 0 {
-                            Text("\(player1Lives)").font(.system(size: 40))
+                ScrollView {
+                    ForEach(playerLives.indices, id: \.self) { index in
+                        VStack(spacing: 10) {
+                            Text("Player \(index + 1)").font(.system(size: 24))
+                            
+                            Text(playerLives[index] > 0 ? "\(playerLives[index])" : "DEAD")
+                                .font(.system(size: 32))
+                                .foregroundColor(playerLives[index] > 0 ? .black : .red)
+                            
+                            VStack {
+                                HStack(spacing: 10) {
+                                    Button("Remove") {
+                                        isAdding[index] = false
+                                        showInput[index] = true
+                                    }
+                                    
+                                    Button("-") {
+                                        playerLives[index] = max(0, playerLives[index] - 1)
+                                        history.append("Player \(index + 1) lost one life.")
+                                    }
+                                    Button("+") {
+                                        playerLives[index] += 1
+                                        history.append("Player \(index + 1) gained one life.")
+                                    }
+                                    
+                                    Button("Add") {
+                                        isAdding[index] = true
+                                        showInput[index] = true
+                                    }
+                                }
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .disabled(playerLives[index] <= 0)
+                            
+                            if showInput[index] {
+                                HStack {
+                                    TextField("Amount", text: $inputAmounts[index])
+                                        .keyboardType(.numberPad)
+                                        .textFieldStyle(.roundedBorder)
+                                        .frame(width: 80)
+                                    
+                                    Button("OK") {
+                                        if let amount = Int(inputAmounts[index]) {
+                                            let verb = isAdding[index] ? "gained" : "lost"
+                                            let change = isAdding[index] ? amount : -amount
+                                            let actualChange = isAdding[index] ? amount : min(amount, playerLives[index])
+                                                                                
+                                            playerLives[index] = max(0, playerLives[index] + change)
+                                            history.append("Player \(index + 1) \(verb) \(actualChange) life.")
+                                        }
+                                        inputAmounts[index] = ""
+                                        showInput[index] = false
+                                    }
+                                }
+                            }
+                            
+                            if playerLives[index] <= 0 {
+                                Text("Player \(index + 1) LOSES!").foregroundColor(.red).font(.title3)
+                            }
+                            Divider().padding(.vertical, 10)
                         }
-                        else {
-                            Text("DEAD").font(.system(size: 40)).foregroundColor(.red)
-                        }
-                        
-                        HStack(alignment: .center, spacing: 5) {
-                            Button("-5") { self.player1Lives -= 5 }
-                            Button("-") { self.player1Lives -= 1 }
-                            Button("+") { self.player1Lives += 1 }
-                            Button("+5") { self.player1Lives += 5 }
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .disabled(player1Lives <= 0)
                     }
-                    
-                    Spacer()
-                    
-                    VStack {
-                        Text("Player 2").font(.system(size:30)).padding(.bottom, 5)
-                        
-                        if player2Lives > 0 {
-                            Text("\(player2Lives)").font(.system(size: 40))
-                        }
-                        else {
-                            Text("DEAD").font(.system(size: 40)).foregroundColor(.red)
-                        }
-                        
-                        HStack(alignment: .center, spacing: 5) {
-                            Button("-5") { self.player2Lives -= 5 }
-                            Button("-") { self.player2Lives -= 1 }
-                            Button("+") { self.player2Lives += 1 }
-                            Button("+5") { self.player2Lives += 5 }
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .disabled(player2Lives <= 0)
+                }
+                
+                HStack(spacing: 20) {
+                    Button("Add Player") {
+                        if playerLives.count < 8 {
+                            playerLives.append(20)
+                            showInput.append(false)
+                            isAdding.append(true)
+                            inputAmounts.append("")
                     }
-                    
-                    Spacer()
-
+                    }
+                    .disabled(playerLives.count >= 8 || gameStarted)
+                                
+                    Button("Remove Player") {
+                        if playerLives.count > 2 {
+                                playerLives.removeLast()
+                                showInput.removeLast()
+                                isAdding.removeLast()
+                                inputAmounts.removeLast()
+                            }
+                    }
+                    .disabled(playerLives.count <= 2 || gameStarted)
                 }
+                .padding()
                 
-                Spacer()
-                
-                if player1Lives <= 0 {
-                    Text("Player 1 LOSES!")
-                        .foregroundColor(.red)
-                        .font(.title2)
-                        .padding(.bottom, 10)
+                NavigationLink(destination: HistoryView(history: history)) {
+                    Text("History")
+                        .padding().frame(maxWidth:.infinity)
+                        .background(Color.blue.opacity(0.3))
+                        .cornerRadius(10)
                 }
-                else if player2Lives <= 0 {
-                    Text("Player 2 LOSES!")
-                        .foregroundColor(.red)
-                        .font(.title2)
-                        .padding(.bottom, 10)
-                }
+                .padding([.leading, .trailing, .bottom])
             }
+            .padding()
+            .navigationTitle("LifeCounter")
         }
     }
 }
+
 #Preview {
     ContentView()
 }
